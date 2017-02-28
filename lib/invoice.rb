@@ -25,7 +25,7 @@ class Invoice
   end
 
   def day_of_the_week_on_which_an_invoice_is_created
-    @created_at.strftime('%A')
+    created_at.strftime('%A')
   end
 
   def invoice_items
@@ -51,6 +51,6 @@ class Invoice
   end
 
   def total
-      invoice_items.map { |invoice_item| invoice_item.total_price }.reduce(:+).round(2)
+    invoice_items.map { |invoice_item| invoice_item.total_price }.reduce(:+).round(2)
   end
 end
