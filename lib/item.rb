@@ -36,4 +36,8 @@ class Item
     @created_at.strftime('%B')
   end
 
+  def revenue
+    invoices.map { |invoice| invoice.total }.reduce(:+)
+  end
+
 end
