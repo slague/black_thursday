@@ -2,10 +2,11 @@ require 'time'
 
 class SalesAnalyst
 
-  attr_reader :sales_engine, :days_hash
+  attr_reader :sales_engine, :days_hash, :invoices_for_merchant
 
   def initialize(sales_engine)
     @sales_engine = sales_engine
+    @invoices_for_merchant = invoices_for_merchant
   end
 
   def average_items_per_merchant
@@ -205,12 +206,27 @@ class SalesAnalyst
     x.select { |y| y.items.count == 1 }
   end
 
-  def most_sold_item_for_merchant(merchant_id)
-    invoices_for_merchant = sales_engine.invoices.find_all_by_merchant_id(merchant_id).select{|invoice| invoice.is_paid_in_full?}
+  def find_all_merchants(merchant_id)
+    sales_engine.invoices.find_all_by_merchant_id(merchant_id).select{|invoice| invoice.is_paid_in_full?}
+  end
 
-    invoice_items = invoices_for_merchant.map do |invoice|
+  def invoice_items_collection
+    invoices_for_merchant = find_all_merchants(merchant_id)
+    invoices_for_merchant.map do |invoice|
       sales_engine.invoice_items.find_all_by_invoice_id(invoice.id)
       end
+  end
+
+  def merchants_by_invoice_items
+    invoice_items_collection
+
+    end
+  end
+
+  def most_sold_item_for_merchant(merchant_id)
+    invoice_items_collection
+
+
     quantity_sold_by_item_id = Hash.new(0)
 
     invoice_items.flatten.each do |invoice_item|
@@ -228,8 +244,7 @@ class SalesAnalyst
   end
 
   def best_item_for_merchant(merchant_id)
-    #use merchant_id to find items
-    invoices_for_merchant = sales_engine.invoices.find_all_by_merchant_id(merchant_id).select{|invoice| invoice.is_paid_in_full?}
+    invoices_for_merchant = find_all_merchants(merchant_id)
 
     invoice_items = invoices_for_merchant.map do |invoice|
       sales_engine.invoice_items.find_all_by_invoice_id(invoice.id)
@@ -246,6 +261,5 @@ class SalesAnalyst
     output_items = revenue_by_item_id.select { |k,v| v == max_item }.keys
 
     sales_engine.items.find_by_id(output_items.first)
-
   end
 end
